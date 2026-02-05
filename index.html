@@ -3,125 +3,162 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Countdown</title>
+<title>Nối thông tin – Ray Bradbury</title>
 
 <style>
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 10px;
-    background: #f5f5
-
-    }
-.quiz {
-    max-width: 600px;
-    margin: auto;
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
 }
-.timer {
-    font-size: 20px;
-    color: red;
-    text-align: center;
+h2 {
+  text-align: center;
 }
-button {
-    padding: 10px;
-    margin-top: 10px;
-    width: 100%;
+#timer {
+  text-align: center;
+  font-size: 20px;
+  color: red;
+  margin-bottom: 10px;
 }
-.answer {
-    padding: 8px;
-    margin: 5px 0;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+.container {
+  display: flex;
+  justify-content: space-around;
+  max-width: 800px;
+  margin: auto;
 }
-.correct { background: #c8f7c5; }
-.wrong { background: #f7c5c5; }
+#left, #right {
+  width: 45%;
+}
+.item {
+  padding: 10px;
+  margin: 8px 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.item.selected {
+  border: 2px solid blue;
+}
+.item.correct {
+  background: #c8f7c5;
+}
+.item.wrong {
+  background: #f7c5c5;
+}
 </style>
 </head>
 
 <body>
 
-<div class="quiz">
-    <div class="timer">⏱ Thời gian: <span id="time">30</span>s</div>
+<h2>NỐI THÔNG TIN – RAY BRADBURY</h2>
+<div id="timer">⏱️ Thời gian: 30s</div>
 
-    <h3 id="question">1 + 1 = ?</h3>
+<div class="container">
+  <div id="left">
+    <div class="item" data-key="1">Tên tác giả</div>
+    <div class="item" data-key="2">Quê quán</div>
+    <div class="item" data-key="3">Tác phẩm tiêu biểu</div>
+    <div class="item" data-key="4">Thể loại</div>
+    <div class="item" data-key="5">Năm sinh – mất</div>
+  </div>
 
-    <div id="answers"></div>
-
-    <button onclick="submitQuiz()">Nộp bài</button>
-    <button onclick="openFullscreen()">📱 Full Screen</button>
+  <div id="right">
+    <div class="item" data-key="3">Biên niên sử Sao Hoả, 451 độ F,..</div>
+    <div class="item" data-key="1">Ray Bradbury</div>
+    <div class="item" data-key="5">1920 – 2012</div>
+    <div class="item" data-key="4">Khoa học viễn tưởng, phản địa đàng, kinh dị,..</div>
+    <div class="item" data-key="2">Waukegan, Illinois, Mỹ</div>
+  </div>
 </div>
 
-<!-- SOUND -->
-<audio id="correctSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
-<audio id="wrongSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
-
 <script>
-const quiz = {
-    question: "1 + 1 = ?",
-    answers: ["1", "2", "3", "4"],
-    correct: 1
-};
-
-let time = 30;
-let timer;
+/* ===== BIẾN ===== */
+let timeLeft = 30;
+let gameOver = false;
 let selected = null;
+let correctCount = 0;
 
-function loadQuiz() {
-    document.getElementById("question").innerText = quiz.question;
-    const box = document.getElementById("answers");
-    box.innerHTML = "";
+const totalPairs = document.querySelectorAll('#left .item').length;
+const timerEl = document.getElementById("timer");
 
-    quiz.answers.forEach((a, i) => {
-        const div = document.createElement("div");
-        div.className = "answer";
-        div.innerText = a;
-        div.onclick = () => selectAnswer(i, div);
-        box.appendChild(div);
-    });
+/* ===== SOUND ===== */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
 
-    timer = setInterval(countdown, 1000);
+  osc.frequency.value = type === "correct" ? 800 : 200;
+  gain.gain.value = 0.15;
+
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.2);
 }
 
-function countdown() {
-    time--;
-    document.getElementById("time").innerText = time;
-    if (time <= 0) {
-        clearInterval(timer);
-        submitQuiz();
+/* ===== COUNTDOWN ===== */
+const timer = setInterval(() => {
+  if (timeLeft <= 0) {
+    endGame("⛔ Hết giờ!");
+    return;
+  }
+  timeLeft--;
+  timerEl.textContent = "⏱️ Thời gian: " + timeLeft + "s";
+}, 1000);
+
+/* ===== CLICK ===== */
+document.querySelectorAll('.item').forEach(item => {
+  item.onclick = () => {
+    if (gameOver || item.classList.contains('correct')) return;
+
+    if (!selected) {
+      selected = item;
+      item.classList.add('selected');
+    } else {
+      if (selected.dataset.key === item.dataset.key) {
+        selected.classList.add('correct');
+        item.classList.add('correct');
+        playSound("correct");
+        correctCount++;
+
+        if (correctCount === totalPairs) {
+          endGame("🎉 Hoàn thành!");
+        }
+      } else {
+        selected.classList.add('wrong');
+        item.classList.add('wrong');
+        playSound("wrong");
+
+        setTimeout(() => {
+          selected.classList.remove('wrong');
+          item.classList.remove('wrong');
+        }, 600);
+      }
+
+      selected.classList.remove('selected');
+      selected = null;
     }
+  };
+});
+
+/* ===== HIỆN ĐÁP ÁN ===== */
+function showAllAnswers() {
+  document.querySelectorAll('#left .item').forEach(left => {
+    const key = left.dataset.key;
+    const right = document.querySelector('#right .item[data-key="' + key + '"]');
+    left.classList.add('correct');
+    right.classList.add('correct');
+  });
 }
 
-function selectAnswer(i, el) {
-    selected = i;
-    document.querySelectorAll(".answer").forEach(a => a.style.border = "1px solid #ccc");
-    el.style.border = "2px solid blue";
+/* ===== KẾT THÚC ===== */
+function endGame(text) {
+  if (gameOver) return;
+  gameOver = true;
+  clearInterval(timer);
+  timerEl.textContent = text;
+  showAllAnswers();
 }
-
-function submitQuiz() {
-    clearInterval(timer);
-
-    document.querySelectorAll(".answer").forEach((a, i) => {
-        if (i === quiz.correct) a.classList.add("correct");
-        else if (i === selected) a.classList.add("wrong");
-    });
-
-    if (selected === quiz.correct)
-        document.getElementById("correctSound").play();
-    else
-        document.getElementById("wrongSound").play();
-}
-
-// FULLSCREEN
-function openFullscreen() {
-    if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen();
-    }
-}
-
-loadQuiz();
 </script>
 
 </body>
