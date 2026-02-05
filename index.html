@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nối thông tin – Ray Bradbury & 451°F</title>
+<title>Ray Bradbury - 451°F</title>
 
 <style>
 body { font-family: Arial, sans-serif; background: #f4f4f4; }
@@ -19,14 +19,25 @@ h2, h3 { text-align: center; }
 .item.correct { background: #c8f7c5; }
 .item.wrong { background: #f7c5c5; }
 .hidden { display: none; }
+
+#answers {
+  display: none;
+  max-width: 800px;
+  margin: 30px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+}
 </style>
 </head>
 
 <body>
 
-<h2>🎮 NỐI THÔNG TIN</h2>
+<h2>🎮</h2>
 <h3 id="questionTitle">Câu 1: Tác giả Ray Bradbury</h3>
 <div id="timer">⏱️ Thời gian: 40s</div>
+
+<div id="game">
 
 <!-- CÂU 1 -->
 <div class="container" id="q1">
@@ -37,7 +48,6 @@ h2, h3 { text-align: center; }
     <div class="item" data-key="a4">Thể loại</div>
     <div class="item" data-key="a5">Năm sinh – mất</div>
   </div>
-
   <div class="column">
     <div class="item" data-key="a3">Biên niên sử Sao Hoả, 451 độ F</div>
     <div class="item" data-key="a1">Ray Bradbury</div>
@@ -56,7 +66,6 @@ h2, h3 { text-align: center; }
     <div class="item" data-key="b4">Bối cảnh</div>
     <div class="item" data-key="b5">Nhân vật chính</div>
   </div>
-
   <div class="column">
     <div class="item" data-key="b5">Guy Montag</div>
     <div class="item" data-key="b2">1953</div>
@@ -64,6 +73,31 @@ h2, h3 { text-align: center; }
     <div class="item" data-key="b4">Một xã hội Mỹ giả định trong tương lai</div>
     <div class="item" data-key="b3">Tiểu thuyết phản địa đàng</div>
   </div>
+</div>
+
+</div>
+
+<!-- ĐÁP ÁN -->
+<div id="answers">
+<h3>📌 ĐÁP ÁN TỔNG HỢP</h3>
+
+<strong>Câu 1 – Tác giả Ray Bradbury</strong>
+<ul>
+<li>Tên tác giả: Ray Bradbury</li>
+<li>Quê quán: Waukegan, Illinois, Mỹ</li>
+<li>Tác phẩm tiêu biểu: Biên niên sử Sao Hoả, 451 độ F</li>
+<li>Thể loại: Khoa học viễn tưởng, phản địa đàng, kinh dị</li>
+<li>Năm sinh – mất: 1920 – 2012</li>
+</ul>
+
+<strong>Câu 2 – Tác phẩm 451 độ F</strong>
+<ul>
+<li>Tên tác phẩm: 451 độ F</li>
+<li>Năm xuất bản: 1953</li>
+<li>Thể loại: Tiểu thuyết phản địa đàng</li>
+<li>Bối cảnh: Một xã hội Mỹ giả định trong tương lai</li>
+<li>Nhân vật chính: Guy Montag</li>
+</ul>
 </div>
 
 <script>
@@ -88,12 +122,12 @@ function sound(ok) {
 
 /* TIMER */
 const timer = setInterval(() => {
-  if (timeLeft <= 0) endGame("⛔ Hết giờ!");
+  if (timeLeft <= 0) endGame();
   timeLeft--;
   timerEl.textContent = "⏱️ Thời gian: " + timeLeft + "s";
 }, 1000);
 
-/* CLICK LOGIC */
+/* CLICK */
 document.querySelectorAll('.item').forEach(item => {
   item.onclick = () => {
     if (item.classList.contains("correct")) return;
@@ -109,7 +143,7 @@ document.querySelectorAll('.item').forEach(item => {
         correct++;
 
         if (correct === 5 && step === 1) nextQuestion();
-        if (correct === 10) endGame("🎉 Hoàn thành!");
+        if (correct === 10) endGame();
       } else {
         sound(false);
         selected.classList.add("wrong");
@@ -125,20 +159,19 @@ document.querySelectorAll('.item').forEach(item => {
   };
 });
 
-/* NEXT */
 function nextQuestion() {
   step = 2;
-  correct = 5;
   document.getElementById("q1").classList.add("hidden");
   document.getElementById("q2").classList.remove("hidden");
   titleEl.textContent = "Câu 2: Tác phẩm 451 độ F";
 }
 
-/* END */
-function endGame(msg) {
+function endGame() {
   clearInterval(timer);
-  timerEl.textContent = msg;
-  document.querySelectorAll('.item').forEach(i => i.classList.add("correct"));
+  document.getElementById("game").style.display = "none";
+  timerEl.style.display = "none";
+  titleEl.textContent = "🎉 HOÀN THÀNH";
+  document.getElementById("answers").style.display = "block";
 }
 </script>
 
