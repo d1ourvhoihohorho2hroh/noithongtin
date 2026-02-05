@@ -3,161 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ray Bradbury</title>
+<title>Nối thông tin – Ray Bradbury & 451°F</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f4f4;
-}
-h2 {
-  text-align: center;
-}
-#timer {
-  text-align: center;
-  font-size: 20px;
-  color: red;
-  margin-bottom: 10px;
-}
-.container {
-  display: flex;
-  justify-content: space-around;
-  max-width: 800px;
-  margin: auto;
-}
-#left, #right {
-  width: 45%;
-}
+body { font-family: Arial, sans-serif; background: #f4f4f4; }
+h2, h3 { text-align: center; }
+#timer { text-align: center; font-size: 20px; color: red; margin-bottom: 10px; }
+.container { display: flex; justify-content: space-around; max-width: 900px; margin: auto; }
+.column { width: 45%; }
 .item {
-  padding: 10px;
-  margin: 8px 0;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  cursor: pointer;
+  padding: 10px; margin: 8px 0; background: white;
+  border: 1px solid #ccc; border-radius: 6px; cursor: pointer;
 }
-.item.selected {
-  border: 2px solid blue;
-}
-.item.correct {
-  background: #c8f7c5;
-}
-.item.wrong {
-  background: #f7c5c5;
-}
+.item.selected { border: 2px solid blue; }
+.item.correct { background: #c8f7c5; }
+.item.wrong { background: #f7c5c5; }
+.hidden { display: none; }
 </style>
 </head>
 
 <body>
 
-<h2>NỐI THÔNG TIN – RAY BRADBURY</h2>
-<div id="timer">⏱️ Thời gian: 30s</div>
+<h2>🎮 NỐI THÔNG TIN</h2>
+<h3 id="questionTitle">Câu 1: Tác giả Ray Bradbury</h3>
+<div id="timer">⏱️ Thời gian: 60s</div>
 
-<div class="container">
-  <div id="left">
-    <div class="item" data-key="1">Tên tác giả</div>
-    <div class="item" data-key="2">Quê quán</div>
-    <div class="item" data-key="3">Tác phẩm tiêu biểu</div>
-    <div class="item" data-key="4">Thể loại</div>
-    <div class="item" data-key="5">Năm sinh – mất</div>
+<!-- CÂU 1 -->
+<div class="container" id="q1">
+  <div class="column">
+    <div class="item" data-key="a1">Tên tác giả</div>
+    <div class="item" data-key="a2">Quê quán</div>
+    <div class="item" data-key="a3">Tác phẩm tiêu biểu</div>
+    <div class="item" data-key="a4">Thể loại</div>
+    <div class="item" data-key="a5">Năm sinh – mất</div>
   </div>
 
-  <div id="right">
-    <div class="item" data-key="3">Biên niên sử Sao Hoả, 451 độ F,..</div>
-    <div class="item" data-key="1">Ray Bradbury</div>
-    <div class="item" data-key="5">1920 – 2012</div>
-    <div class="item" data-key="4">Khoa học viễn tưởng, phản địa đàng, kinh dị,..</div>
-    <div class="item" data-key="2">Waukegan, Illinois, Mỹ</div>
+  <div class="column">
+    <div class="item" data-key="a3">Biên niên sử Sao Hoả, 451 độ F</div>
+    <div class="item" data-key="a1">Ray Bradbury</div>
+    <div class="item" data-key="a5">1920 – 2012</div>
+    <div class="item" data-key="a4">Khoa học viễn tưởng, phản địa đàng, kinh dị</div>
+    <div class="item" data-key="a2">Waukegan, Illinois, Mỹ</div>
+  </div>
+</div>
+
+<!-- CÂU 2 -->
+<div class="container hidden" id="q2">
+  <div class="column">
+    <div class="item" data-key="b1">Tên tác phẩm</div>
+    <div class="item" data-key="b2">Năm xuất bản</div>
+    <div class="item" data-key="b3">Thể loại</div>
+    <div class="item" data-key="b4">Bối cảnh</div>
+    <div class="item" data-key="b5">Nhân vật chính</div>
+  </div>
+
+  <div class="column">
+    <div class="item" data-key="b5">Guy Montag</div>
+    <div class="item" data-key="b2">1953</div>
+    <div class="item" data-key="b1">451 độ F</div>
+    <div class="item" data-key="b4">Một xã hội Mỹ giả định trong tương lai</div>
+    <div class="item" data-key="b3">Tiểu thuyết phản địa đàng</div>
   </div>
 </div>
 
 <script>
-/* ===== BIẾN ===== */
-let timeLeft = 30;
-let gameOver = false;
 let selected = null;
-let correctCount = 0;
+let correct = 0;
+let step = 1;
+let timeLeft = 40;
 
-const totalPairs = document.querySelectorAll('#left .item').length;
 const timerEl = document.getElementById("timer");
+const titleEl = document.getElementById("questionTitle");
 
-/* ===== SOUND ===== */
+/* SOUND */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSound(type) {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  osc.frequency.value = type === "correct" ? 800 : 200;
-  gain.gain.value = 0.15;
-
-  osc.start();
-  osc.stop(audioCtx.currentTime + 0.2);
+function sound(ok) {
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  o.frequency.value = ok ? 800 : 200;
+  g.gain.value = 0.15;
+  o.start(); o.stop(audioCtx.currentTime + 0.2);
 }
 
-/* ===== COUNTDOWN ===== */
+/* TIMER */
 const timer = setInterval(() => {
-  if (timeLeft <= 0) {
-    endGame("⛔ Hết giờ!");
-    return;
-  }
+  if (timeLeft <= 0) endGame("⛔ Hết giờ!");
   timeLeft--;
   timerEl.textContent = "⏱️ Thời gian: " + timeLeft + "s";
 }, 1000);
 
-/* ===== CLICK ===== */
+/* CLICK LOGIC */
 document.querySelectorAll('.item').forEach(item => {
   item.onclick = () => {
-    if (gameOver || item.classList.contains('correct')) return;
+    if (item.classList.contains("correct")) return;
 
     if (!selected) {
       selected = item;
-      item.classList.add('selected');
+      item.classList.add("selected");
     } else {
       if (selected.dataset.key === item.dataset.key) {
-        selected.classList.add('correct');
-        item.classList.add('correct');
-        playSound("correct");
-        correctCount++;
+        selected.classList.add("correct");
+        item.classList.add("correct");
+        sound(true);
+        correct++;
 
-        if (correctCount === totalPairs) {
-          endGame("🎉 Hoàn thành!");
-        }
+        if (correct === 5 && step === 1) nextQuestion();
+        if (correct === 10) endGame("🎉 Hoàn thành!");
       } else {
-        selected.classList.add('wrong');
-        item.classList.add('wrong');
-        playSound("wrong");
-
+        sound(false);
+        selected.classList.add("wrong");
+        item.classList.add("wrong");
         setTimeout(() => {
-          selected.classList.remove('wrong');
-          item.classList.remove('wrong');
+          selected.classList.remove("wrong");
+          item.classList.remove("wrong");
         }, 600);
       }
-
-      selected.classList.remove('selected');
+      selected.classList.remove("selected");
       selected = null;
     }
   };
 });
 
-/* ===== HIỆN ĐÁP ÁN ===== */
-function showAllAnswers() {
-  document.querySelectorAll('#left .item').forEach(left => {
-    const key = left.dataset.key;
-    const right = document.querySelector('#right .item[data-key="' + key + '"]');
-    left.classList.add('correct');
-    right.classList.add('correct');
-  });
+/* NEXT */
+function nextQuestion() {
+  step = 2;
+  correct = 5;
+  document.getElementById("q1").classList.add("hidden");
+  document.getElementById("q2").classList.remove("hidden");
+  titleEl.textContent = "Câu 2: Tác phẩm 451 độ F";
 }
 
-/* ===== KẾT THÚC ===== */
-function endGame(text) {
-  if (gameOver) return;
-  gameOver = true;
+/* END */
+function endGame(msg) {
   clearInterval(timer);
-  timerEl.textContent = text;
-  showAllAnswers();
+  timerEl.textContent = msg;
+  document.querySelectorAll('.item').forEach(i => i.classList.add("correct"));
 }
 </script>
 
